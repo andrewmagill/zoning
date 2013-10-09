@@ -1,1 +1,182 @@
+<<<<<<< HEAD
 My GitHub Page
+=======
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9"/>   
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+  <title>poop</title>
+
+  <link rel="stylesheet" type="text/css" href="//serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/esri/css/esri.css"/>
+
+  <style>
+    #map {
+      /*margin-left: 0px;*/
+      height: 400px;
+    }
+  </style>
+
+  <script src="//cdnjs.cloudflare.com/ajax/libs/knockout/2.3.0/knockout-min.js"></script>
+  <script src="//js.arcgis.com/3.6/"></script>
+  
+  <script type="text/javascript">
+    require([
+      "dojo/on",
+      "esri/map", "esri/geometry/Point", "esri/SpatialReference",
+      "esri/layers/ArcGISTiledMapServiceLayer", 
+      "esri/layers/ArcGISDynamicMapServiceLayer",
+      "esri/tasks/IdentifyTask", "esri/tasks/IdentifyParameters"
+    ], function(on, 
+      esriMap, esriPoint, esriSpatialRef, 
+      esriCached, esriDynamic, 
+      esriIdentifyTask, esriIdentifyParameters) {
+
+      var ViewModel = function(){        
+        this.mapX = ko.observable(0);
+        this.mapY = ko.observable(0);
+        this.mapPoint = ko.observable(new esriPoint());
+        this.mapCoords = ko.computed(function() {
+          return "("+this.mapPoint().x+", "+this.mapPoint().y+")";
+        }, this)
+      };
+      var instanceOfViewModel = new ViewModel();
+
+      ko.applyBindings(instanceOfViewModel);
+
+      var mapControl = new esriMap("map", {
+        center: new esriPoint(APPCFG.MAP_INIT.center),
+        zoom: APPCFG.MAP_INIT.zoom
+      });
+      var cachedLayer = new esriCached(APPCFG.BASEMAP_PATH);
+      var dynamicLayer = new esriDynamic(APPCFG.DYNAMICMAP_PATH);
+      mapControl.addLayer(cachedLayer);
+      mapControl.addLayer(dynamicLayer);
+/*
+      on(mapControl, "click", function(evt){
+        instanceOfViewModel.mapX(evt.mapPoint.x);
+        instanceOfViewModel.mapY(evt.mapPoint.y);
+        instanceOfViewModel.mapPoint(evt.mapPoint);
+      });
+*/
+      on(mapControl, "click", queryDynamic);
+
+      function queryDynamic(evt) {
+        var identify = new esriIdentifyTask(APPCFG.DYNAMICMAP_PATH);
+        var point = evt.mapPoint;
+
+        var identifyParams = new esriIdentifyParameters();
+        identifyParams.geometry = point;
+        identifyParams.layerIds = APPCFG.LAYERS;
+        identifyParams.layerOption = esriIdentifyParameters.LAYER_OPTION_ALL;
+        identifyParams.tolerance = 2;
+        identifyParams.mapExtent = mapControl.extent;
+        identifyParams.returnGeometry = false;
+
+        identify.execute(identifyParams, callback, errback);
+      }
+
+      function callback(response) {
+        alert("what's up");
+      }
+
+      function errback(err) {
+        alert("that didn't work");
+      }
+
+    //this is the end yo
+    });
+
+    //zoning profile application configuration
+    APPCFG = {
+      //initial extent
+      MAP_EXTENT: {
+        "xmin":2971000,
+        "ymin":9992500,
+        "xmax":3240000,
+        "ymax":10178000,
+        "spatialReference":{
+          "wkid":2277
+          }
+        },
+        
+      MAP_INIT: {
+        "center": {
+          "x": 3110570, 
+          "y": 10071473, 
+          "spatialReference": {
+            "wkid": 2277 } 
+          },
+        "zoom":4
+      },
+
+      //service endpoints
+      BASEMAP_PATH: "http://www.austintexas.gov/GIS/REST/MapTiled/GreyScale/MapServer",
+      DYNAMICMAP_PATH: "http://www.austintexas.gov/GIS/REST/ZoningProfile/ZoningProfile/MapServer",
+      GEOCODE_PATH: "http://www.austintexas.gov/GIS/REST/Geocode/COA_Composite_Locator/GeocodeServer",
+      
+      //location layer names
+      PARCEL_LAYER_NAME: "Lot Line",
+      ADDRESS_LAYER_NAME: "Address Points",
+      CITY_GRID_LAYER_NAME: "City Grid",
+      
+      //location field names
+      ADDRESS_FIELD_FULL: "FULL_STREET_NAME",
+      CITY_GRID_FIELD_TILE_NAME: "TILE_NAME",
+      
+      //flum, zoning layer names
+      FLUM_LAYER_NAME: "Future Land Use",
+      ZONING_REVIEW_LAYER_NAME: "Zoning Review Cases",
+      ZONING_ORDINANCE_LAYER_NAME: "Zoning Ordinance",
+      ZONING_LAYER_NAME: "Zoning",
+      
+      //flum zoning field names
+      FLUM_FIELD_FUTURE_LAND_USE: "FUTURE_LAND_USE",  
+      ZONING_REVIEW_FIELD_CASE_NUMBER: "CASE_NUMBER",
+      ZONING_FIELD_ZTYPE: "ZONING_ZTYPE",
+      ZONING_ORDINANCE_FIELD_NUMBER: "ZONING_ORDINANCE_NUMBER",
+      ZONING_ORDINANCE_FIELD_PATH: "ZONING_ORDINANCE_PATH",
+      
+      //not-really-overlay names
+      GREEN_BUILDING_MANDATORY_LAYER_NAME: "Green Building Mandatory",
+      TRANSIT_ORIENTED_DEVELOPMENT_LAYER_NAME: "Transit Oriented Development",
+      CCS_1984_LAYER_NAME: "Comprehensive Cultural Survey Year 1984",
+      
+      //not-really-overlay field names
+      GREEN_BUILDING_FIELD_NAME: "Name",
+      TOD_FIELD_STATION_NAME: "STATION_NAME", 
+      TOD_FIELD_STATION_TYPE: "STATEION_TYPE",
+      TOD_SUB_DISTRICT: "TOD_SUB_DISTRICT",
+      CCS_FIELD_BOUNDARY_NAME: "BOUNDARY_NAME",
+      
+      //annoying overlay missing from name layers
+      CURE_LAYER_NAMES: "Central Urban Renewal (C.U.R.E.)",
+      NEIGHBORHOOD_COMBINING_DISTRICTS_LAYER_NAME: "Neighborhood Conservation Combining District",
+      RESIDENTIAL_DESIGN_STANDARDS_LAYER_NAME: "Residential Design Standards",
+      
+      //standard overlay field names
+      OVERLAY_FIELD_NAME: "ZONING_OVERLAY_NAME",
+      OVERLAY_FIELD_SUB_NAME: "ZONING_OVERLAY_SUB_NAME",
+      OVERLAY_FIELD_SUB_NUMBER: "ZONING_OVERLAY_SUB_NUMBER",
+
+      //messages
+      LINK_STRING: "Click to Open",
+
+      //layers to query, todo: make this a little better
+      LAYERS: [1,4,16,22,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51]
+    }
+  </script>
+
+</head>
+    <body>
+        <div id="search">
+        </div>
+        <div id="map">
+        </div>
+        <div id="results">
+          <span data-bind="text: mapCoords"></span>
+        </div>
+    </body>
+</html>
+>>>>>>> 683ec321cbfde66386a25634f8e3e2a100dfc231
